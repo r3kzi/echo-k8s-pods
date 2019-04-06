@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tcp-echo
+  labels:
+    app: tcp-echo
+spec:
+  selector:
+    app: tcp-echo
+  ports:
+    - port: 9000
+      name: tcp
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: tcp-echo-v1
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tcp-echo
+        version: v1
+    spec:
+      containers:
+        - name: tcp-echo
+          image: rekzi/tcp-echo:latest
+          args: [ "9000", "one" ] # prefix: one
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: tcp-echo-v2
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: tcp-echo
+        version: v2
+    spec:
+      containers:
+        - name: tcp-echo
+          image: rekzi/tcp-echo:latest
+          args: [ "9000", "two" ] # prefix: two
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
