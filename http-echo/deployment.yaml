@@ -1,16 +1,3 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: http-echo
-  labels:
-    app: http-echo
-spec:
-  selector:
-    app: http-echo
-  ports:
-    - port: 8080
-      name: http
----
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:

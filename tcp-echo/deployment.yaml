@@ -1,16 +1,3 @@
-apiVersion: v1
-kind: Service
-metadata:
-  name: tcp-echo
-  labels:
-    app: tcp-echo
-spec:
-  selector:
-    app: tcp-echo
-  ports:
-    - port: 9000
-      name: tcp
----
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
@@ -26,7 +13,7 @@ spec:
       containers:
         - name: tcp-echo
           image: rekzi/tcp-echo:latest
-          args: [ "9000", "one" ] # prefix: one
+          args: [ "-prefix", "v1" ]
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9000
@@ -46,7 +33,7 @@ spec:
       containers:
         - name: tcp-echo
           image: rekzi/tcp-echo:latest
-          args: [ "9000", "two" ] # prefix: two
+          args: [ "-prefix", "v2" ]
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9000
