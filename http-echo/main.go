@@ -4,6 +4,9 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
 	"os"
@@ -12,13 +15,17 @@ import (
 )
 
 var (
-	listenAddr string
-	version    string
+	listenAddr        string
+	version           string
+	requestsProcessed = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "http_echo_requests_processed_total",
+		Help: "The total number of processed events",
+	})
 )
 
 func main() {
-	flag.StringVar(&listenAddr,"listen-adr", "8080", "server listen address")
-	flag.StringVar(&version,"version", "v1", "version")
+	flag.StringVar(&listenAddr, "listen-adr", "8080", "server listen address")
+	flag.StringVar(&version, "version", "v1", "version")
 	flag.Parse()
 
 	logger := log.New(os.Stdout, "", log.LstdFlags)
@@ -26,6 +33,7 @@ func main() {
 
 	router := http.NewServeMux()
 	router.Handle("/", handler(version))
+	router.Handle("/metrics", promhttp.Handler())
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%v", listenAddr),
@@ -68,6 +76,10 @@ func handler(version string) http.Handler {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
+		//Increment metric for prometheus
+		requestsProcessed.Inc()
+
+		//Write http response
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.WriteHeader(http.StatusOK)
