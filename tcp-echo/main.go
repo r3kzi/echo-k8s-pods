@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"time"
@@ -11,21 +12,24 @@ import (
 
 func main() {
 	port := flag.String("port", "9000", "TCP port")
-	prefix := flag.String("prefix", "hello", "Prefix to use")
+	prefix := flag.String("version", "v1", "Version to use")
 	flag.Parse()
+
+	logger := log.New(os.Stdout, "", log.LstdFlags)
+	logger.Println("Server is starting...")
 
 	listener, err := net.Listen("tcp", ":"+*port)
 	if err != nil {
-		fmt.Println("failed to create listener, err:", err)
+		logger.Fatalf("failed to create listener, err: %s", err)
 		os.Exit(1)
 	}
 	defer listener.Close()
-	fmt.Printf("listening on port %s with prefix: %s\n", listener.Addr(), *prefix)
+	logger.Printf("listening on port %s with prefix: %s\n", listener.Addr(), *prefix)
 
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			fmt.Println("failed to accept connection, err:", err)
+			logger.Fatalf("failed to accept connection, err: %s", err)
 			continue
 		}
 
@@ -34,33 +38,34 @@ func main() {
 }
 
 func handleConnection(conn net.Conn, prefix *string) {
-	fmt.Println("Handling new connection...")
+	logger := log.New(os.Stdout, "", log.LstdFlags)
+	logger.Println("Handling new connection...")
 
 	defer func() {
 		conn.Close()
-		fmt.Println("Closing connection...")
+		logger.Println("Closing connection...")
 	}()
 
 	timeoutDuration := 5 * time.Second
 
 	err := conn.SetReadDeadline(time.Now().Add(timeoutDuration))
 	if err != nil {
-		fmt.Println("failed to set read deadline on connection, err:", err)
+		logger.Fatalf("failed to set read deadline on connection, err: %s", err)
 	}
 
 	bytes, err := bufio.NewReader(conn).ReadBytes('\n')
 	if err != nil {
-		fmt.Println("failed to read data, err:", err)
+		logger.Fatalf("failed to read data, err: %s", err)
 		return
 	}
 
-	fmt.Printf("request: %s", bytes)
+	logger.Printf("request: %s", bytes)
 
 	line := fmt.Sprintf("%s %s", *prefix, bytes)
-	fmt.Printf("response: %s", line)
+	logger.Printf("response: %s", line)
 
 	_, err = conn.Write([]byte(line))
 	if err != nil {
-		fmt.Println("failed to write response, err:", err)
+		logger.Fatalf("failed to write response, err: %s", err)
 	}
 }

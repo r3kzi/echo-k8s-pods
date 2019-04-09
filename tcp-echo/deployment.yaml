@@ -13,7 +13,7 @@ spec:
       containers:
         - name: tcp-echo
           image: rekzi/tcp-echo:latest
-          args: [ "-prefix", "v1" ]
+          args: [ "-version", "v1" ]
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9000
@@ -33,7 +33,7 @@ spec:
       containers:
         - name: tcp-echo
           image: rekzi/tcp-echo:latest
-          args: [ "-prefix", "v2" ]
+          args: [ "-version", "v2" ]
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9000
