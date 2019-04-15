@@ -16,5 +16,11 @@ branches:
   only:
     - master
 
+services:
+  - docker
+
 script:
   - go test -v ./...
+
+after_success:
+  - make image
