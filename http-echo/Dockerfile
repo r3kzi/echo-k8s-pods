@@ -1,5 +1,5 @@
 # First stage: build the executable.
-FROM golang:1.11 as builder
+FROM golang:1.12 as builder
 WORKDIR /go/src/github.com/rekzi/http-echo/
 COPY . .
 # CGO_ENABLED=0 to build a statically-linked executable

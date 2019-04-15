@@ -4,15 +4,29 @@ import (
 	"context"
 	"flag"
 	"fmt"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promauto"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promauto"
+	log "github.com/sirupsen/logrus"
 )
+
+func init() {
+	// Log as JSON instead of the default ASCII formatter.
+	log.SetFormatter(&log.JSONFormatter{})
+
+	// Output to stdout instead of the default stderr
+	// Can be any io.Writer, see below for File example
+	log.SetOutput(os.Stdout)
+
+	// Only log the warning severity or above.
+	log.SetLevel(log.InfoLevel)
+}
 
 var (
 	listenAddr        string
@@ -28,8 +42,7 @@ func main() {
 	flag.StringVar(&version, "version", "v1", "version")
 	flag.Parse()
 
-	logger := log.New(os.Stdout, "", log.LstdFlags)
-	logger.Println("Server is starting...")
+	log.Info("Server is starting...")
 
 	router := http.NewServeMux()
 	router.Handle("/", handler(version))
@@ -50,35 +63,37 @@ func main() {
 
 	go func() {
 		<-quit
-		logger.Println("Server is shutting down...")
+		log.Info("Server is shutting down...")
 
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 
 		if err := server.Shutdown(ctx); err != nil {
-			logger.Fatalf("Could not gracefully shutdown the server: %v\n", err)
+			log.Fatalf("Could not gracefully shutdown the server: %v\n", err)
 		}
 		close(done)
 	}()
 
-	logger.Printf("Server is ready to handle requests at :%s \n", listenAddr)
+	log.Info("Server is ready to handle requests at :%s \n", listenAddr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		logger.Fatalf("Could not listen on %s: %v\n", listenAddr, err)
+		log.Fatalf("Could not listen on %s: %v\n", listenAddr, err)
 	}
 
 	<-done
-	logger.Println("Server stopped")
+	log.Info("Server stopped")
 }
 
 func handler(version string) http.Handler {
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Info("Handler called with " + r.URL.Path)
 		if r.URL.Path != "/" {
 			http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 			return
 		}
+
 		//Increment metric for prometheus
 		requestsProcessed.Inc()
-
 		//Write http response
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.Header().Set("X-Content-Type-Options", "nosniff")
