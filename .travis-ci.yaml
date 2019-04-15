@@ -1,0 +1,20 @@
+language: go
+
+go:
+  - 1.12.x
+
+# Only clone the most recent commit.
+git:
+  depth: 1
+
+install: true
+
+notifications:
+  email: true
+
+branches:
+  only:
+    - master
+
+script:
+  - go test -v ./...
