@@ -1,5 +1,7 @@
 # Echo Pods for Kubernetes
 
+[![Build Status](https://travis-ci.org/rekz1/echo-k8s-pods.svg?branch=master)](https://travis-ci.org/rekz1/echo-k8s-pods)
+
 ## tcp
 
 ```bash
