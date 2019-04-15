@@ -23,5 +23,6 @@ script:
   - go test -v ./...
 
 after_success:
-  - cd http-echo
-  - make image
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build --no-cache -t http-echo -t $DOCKER_USERNAME/http-echo:latest http-echo/
+  - docker push $DOCKER_USERNAME/http-echo:latest
