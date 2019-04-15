@@ -1,0 +1,72 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: http-echo-destination
+spec:
+  host: http-echo
+  trafficPolicy:
+    tls:
+      mode: ISTIO_MUTUAL
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: http-echo-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    #We need the open http port and the redirect to https
+    #See https://github.com/istio/istio/issues/6071
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - "http-echo.default.svc.cluster.local"
+      tls:
+        httpsRedirect: true
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+          #mode: SIMPLE # without mTLS
+          mode: MUTUAL # mTLS
+          credentialName: "http-echo" # must be the same as secret
+      hosts:
+        - "http-echo.default.svc.cluster.local"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: http-echo-virtual-service
+spec:
+  hosts:
+    - "http-echo.default.svc.cluster.local"
+  gateways:
+    - http-echo-gateway
+  http:
+    - match:
+        - uri:
+            exact: /
+      route:
+        - destination:
+            host: http-echo
+            port:
+              number: 8080
+            subset: v1
+          weight: 50
+        - destination:
+            host: http-echo
+            port:
+              number: 8080
+            subset: v2
+          weight: 50

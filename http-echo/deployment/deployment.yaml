@@ -1,3 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: http-echo
+  labels:
+    app: http-echo
+spec:
+  selector:
+    app: http-echo
+  type: ClusterIP
+  ports:
+    - name: http-port
+      port: 8080
+---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
