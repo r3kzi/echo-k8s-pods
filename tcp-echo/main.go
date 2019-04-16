@@ -7,6 +7,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -32,9 +33,12 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt)
 
-	go createTCPListener()
-	go createPromEndpoint()
-
+	go func() {
+		createTCPListener()
+	}()
+	go func() {
+		createPromEndpoint()
+	}()
 	<-quit
 }
 
@@ -96,6 +100,9 @@ func handleTCPConnection(conn net.Conn, version string) {
 
 	bytes, err := bufio.NewReader(conn).ReadBytes('\n')
 	if err != nil {
+		if err == io.EOF {
+			return
+		}
 		logger.Fatalf("failed to read data, err: %s", err)
 		return
 	}
