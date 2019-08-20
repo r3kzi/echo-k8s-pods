@@ -1,0 +1,28 @@
+language: go
+
+go:
+  - 1.12.x
+
+# Only clone the most recent commit.
+git:
+  depth: 1
+
+install: true
+
+notifications:
+  email: true
+
+branches:
+  only:
+    - master
+
+services:
+  - docker
+
+script:
+  - go test -v ./...
+
+after_success:
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+  - docker build --no-cache -t http-echo -t $DOCKER_USERNAME/http-echo:latest http-echo/
+  - docker push $DOCKER_USERNAME/http-echo:latest

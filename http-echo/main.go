@@ -74,7 +74,7 @@ func main() {
 		close(done)
 	}()
 
-	log.Info("Server is ready to handle requests at :%s \n", listenAddr)
+	log.Info("Server is ready to handle requests at :", listenAddr)
 	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 		log.Fatalf("Could not listen on %s: %v\n", listenAddr, err)
 	}
