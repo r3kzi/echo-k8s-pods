@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"os/signal"
 	"time"
@@ -46,6 +47,7 @@ func main() {
 
 	router := http.NewServeMux()
 	router.Handle("/", handler(version))
+	router.Handle("/showRequest", showRequestHandler())
 	router.Handle("/metrics", promhttp.Handler())
 
 	server := &http.Server{
@@ -99,5 +101,27 @@ func handler(version string) http.Handler {
 		w.Header().Set("X-Content-Type-Options", "nosniff")
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, version)
+	})
+}
+
+func showRequestHandler() http.Handler {
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestDump, err := httputil.DumpRequest(r, true)
+		log.Info("Request receiver: " + string(requestDump))
+
+		if err != nil {
+			log.Info("Error getting the Request Dump " + err.Error())
+			w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, string(requestDump))
+
 	})
 }

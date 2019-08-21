@@ -26,6 +26,17 @@ $ docker run -p 8080:8080 rekzi/http-echo -version v1
 ```bash
 $ curl localhost:8080
 v1
+
+$ curl localhost:8080/showRequest -X POST -H "TestHeader: test1111111111111" -H "Content-Type: application/json" --data '{"value": "my_password"}' 
+POST /showRequest HTTP/1.1
+Host: localhost:8080
+Accept: */*
+Content-Length: 24
+Content-Type: application/json
+Testheader: test1111111111111
+User-Agent: curl/7.61.0
+{"value": "my_password"}
+
 ```
 
 ### prometheus endpoint
